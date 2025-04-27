@@ -4,6 +4,8 @@ from rest_framework_simplejwt.views import (
 )
 from rest_framework.response import Response
 
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+
 class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         try:
@@ -39,5 +41,31 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     
 class CustomTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
+        try:
+            refresh_token = request.COOKIES.get('refresh_token')
+            if not refresh_token:
+                return Response({'refreshed': False}, status=400)
+            
+            serializer = TokenRefreshSerializer(data={'refresh': refresh_token})
+            serializer.is_valid(raise_exception=True)
+            
+            access_token = serializer.validated_data['access']
+            
+            response = Response()
+            response.data = {'refreshed': True}
+            
+            response.set_cookie(
+                key='access_token',
+                value=access_token,
+                httponly=True,
+                secure=True,
+                samesite='None',
+                path='/'
+            )
+            
+            return response
+        except Exception as e:
+            print("Refresh error:", e)
+            return Response({'refresh': False}, status=400)
+            
     
