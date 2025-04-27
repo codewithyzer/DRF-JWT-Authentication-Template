@@ -2,6 +2,6 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('token/', views.token_view),
-    path('token/refresh/', views.token_refresh_view)
+    path('token/', views.CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', views.CustomTokenRefreshView.as_view(), name='token_refresh')
 ]
